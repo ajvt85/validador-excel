@@ -1,3 +1,4 @@
+import io
 import re
 import openpyxl
 import streamlit as st
@@ -166,28 +167,55 @@ def validar_excel(file):
       'filas_error': filas_con_error_nros,
       'por_columna': errores_por_columna,
       'detalle_filas': detalle_errores_por_fila,
-      'workbook': wb,
+      'file_bytes': file,  # Conservamos el archivo original para procesarlo limpio
   }
 
 
-def generar_excel_reparado(wb):
+def generar_excel_reparado(uploaded_file):
+  # Recargamos el archivo original para asegurarnos de modificar el libro limpio
+  wb = openpyxl.load_workbook(uploaded_file, data_only=False)
   ws = wb.active
+
   for row in ws.iter_rows(min_row=1, max_row=ws.max_row):
+    # Omitir filas vacías
+    if all(cell.value is None for cell in row):
+      continue
+
+    # Asegurar al menos 7 celdas
+    while len(row) < 7:
+      class DummyCell:
+        value = None
+      row = list(row) + [DummyCell()]
+
+    # Columna A y B: Limpiar espacios
+    if row[0].value is not None:
+      row[0].value = str(row[0].value).strip().upper()
+    if row[1].value is not None:
+      row[1].value = str(row[1].value).strip().upper()
+
+    # Columna C: Asegurar 20 dígitos y apóstrofe inicial en la barra fx
     if row[2].value is not None:
-      row[2].value = str(row[2].value).strip()
-      row[2].quotePrefix = True
+      val_c = str(row[2].value).strip()
+      # Si por algún motivo tiene decimales o formato extraño, limpiamos
+      val_c = re.sub(r'\D', '', val_c)  # Solo números
+      row[2].value = val_c
+      row[2].quotePrefix = True  # Fuerza el apóstrofe en la barra fx
 
+    # Columna D: Limpiar espacios de agencia
+    if row[3].value is not None:
+      row[3].value = str(row[3].value).strip()
+
+    # Columna E: Monto (cambiar comas por puntos y forzar apóstrofe en fx)
     if row[4].value is not None:
-      val_e = str(row[4].value).replace(',', '.')
+      val_e = str(row[4].value).strip().replace(',', '.')
       row[4].value = val_e
-      row[4].quotePrefix = True
+      row[4].quotePrefix = True  # Fuerza el apóstrofe en la barra fx
 
-    if len(row) >= 6:
-      row[5].value = '2072'
-    if len(row) >= 7:
-      row[6].value = 'N'
+    # Columna F: Forzar constante 2072
+    row[5].value = '2072'
 
-  import io
+    # Columna G: Forzar constante N
+    row[6].value = 'N'
 
   output = io.BytesIO()
   wb.save(output)
@@ -240,7 +268,7 @@ if uploaded_file is not None:
 
   st.markdown('---')
 
-  # --- NUEVA SECCIÓN: LISTADO DETALLADO DE FILAS CON ERRORES ---
+  # Listado detallado fila por fila
   st.subheader('🔍 Detalle Fila por Fila de los Errores Encontrados')
 
   if resultado['detalle_filas']:
@@ -253,8 +281,8 @@ if uploaded_file is not None:
 
   st.markdown('---')
 
-  # Botón de descarga
-  excel_limpio = generar_excel_reparado(resultado['workbook'])
+  # Botón de descarga interactivo y funcional
+  excel_limpio = generar_excel_reparado(uploaded_file)
   st.download_button(
       label='✨ Reparar y Descargar Excel Limpio',
       data=excel_limpio,
