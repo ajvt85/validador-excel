@@ -3,14 +3,14 @@ import re
 import openpyxl
 import streamlit as st
 
-# Configuración de la página web de Streamlit con el nuevo título
+# Configuración de la página web de Streamlit
 st.set_page_config(
     page_title='CréditoYA - Validador de archivo',
     page_icon='📊',
     layout='wide',
 )
 
-# Inyección de estilos CSS optimizados (con márgenes y ancho ajustado)
+# Inyección de estilos CSS y traducción automática del botón de carga a "Subir Aquí"
 st.markdown(
     """
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -21,7 +21,7 @@ st.markdown(
             max-width: 98%;
         }
         
-        /* Botón de cabecera con margen adecuado para que no se vea cortado */
+        /* Botón de cabecera completo y centrado */
         .header-btn {
             display: flex;
             align-items: center;
@@ -49,6 +49,24 @@ st.markdown(
             flex-shrink: 0;
         }
     </style>
+
+    <script>
+        // Script para traducir dinámicamente los textos del file uploader a español
+        const observer = new MutationObserver((mutations) => {
+            document.querySelectorAll('span, div, p').forEach(el => {
+                if (el.innerText.includes("Drag and drop file here")) {
+                    el.innerText = el.innerText.replace("Drag and drop file here", "Arrastra y suelta tu archivo Excel aquí");
+                }
+                if (el.innerText.includes("Limit 200MB per file")) {
+                    el.innerText = el.innerText.replace("Limit 200MB per file", "Límite de 200MB por archivo");
+                }
+                if (el.innerText.includes("Browse files")) {
+                    el.innerText = el.innerText.replace("Browse files", "Subir Aquí");
+                }
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    </script>
     """,
     unsafe_allow_html=True,
 )
@@ -232,7 +250,6 @@ def generar_excel_reparado(uploaded_file):
 
 
 # --- INTERFAZ GRÁFICA CON STREAMLIT ---
-# Encabezado con icono SVG 'fact_check' y nuevo título
 st.markdown(
     """
     <div class="header-btn">
