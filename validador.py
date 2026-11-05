@@ -10,7 +10,7 @@ st.set_page_config(
     layout='wide',
 )
 
-# Inyección de estilos CSS y script para traducir el botón a "Subir Aquí"
+# Inyección de estilos CSS y script optimizado para cambiar "Upload" por "Subir"
 st.markdown(
     """
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -51,22 +51,20 @@ st.markdown(
     </style>
 
     <script>
-        // Script para traducir "Upload" y otros textos de carga a español en tiempo real
+        // Script para traducir textos específicos de Streamlit en tiempo real
         function traducirTextos() {
-            document.querySelectorAll('button, span, div, p').forEach(el => {
-                if (el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.TEXT_NODE) {
-                    let texto = el.childNodes[0].nodeValue.trim();
-                    if (texto === "Upload" || texto === "Browse files") {
-                        el.childNodes[0].nodeValue = "Subir Aquí";
-                    }
-                    if (texto === "Drag and drop file here") {
-                        el.childNodes[0].nodeValue = "Arrastra y suelta tu archivo Excel aquí";
-                    }
+            // Buscar párrafos y contenedores de texto específicos
+            document.querySelectorAll('p, span').forEach(el => {
+                if (el.innerText.trim() === "Upload") {
+                    el.innerText = "Subir";
+                }
+                if (el.innerText.trim() === "Drag and drop file here") {
+                    el.innerText = "Arrastra y suelta tu archivo Excel aquí";
                 }
             });
         }
 
-        const observer = new MutationObserver((mutations) => {
+        const observer = new MutationObserver(() => {
             traducirTextos();
         });
         
