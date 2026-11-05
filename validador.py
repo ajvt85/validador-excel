@@ -10,7 +10,7 @@ st.set_page_config(
     layout='wide',
 )
 
-# Inyección de estilos CSS y script optimizado para cambiar "Upload" por "Subir"
+# Inyección de estilos CSS y script forzado para traducir "Upload" a "Subir"
 st.markdown(
     """
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -51,25 +51,32 @@ st.markdown(
     </style>
 
     <script>
-        // Script para traducir textos específicos de Streamlit en tiempo real
-        function traducirTextos() {
-            // Buscar párrafos y contenedores de texto específicos
-            document.querySelectorAll('p, span').forEach(el => {
-                if (el.innerText.trim() === "Upload") {
-                    el.innerText = "Subir";
+        // Función para forzar la traducción del botón Upload a Subir
+        function forzarTraduccionUpload() {
+            // Buscar todos los elementos de texto o botones dentro del uploader
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+            let node;
+            while (node = walker.nextNode()) {
+                if (node.nodeValue.trim() === "Upload") {
+                    node.nodeValue = "Subir";
                 }
-                if (el.innerText.trim() === "Drag and drop file here") {
-                    el.innerText = "Arrastra y suelta tu archivo Excel aquí";
+                if (node.nodeValue.trim() === "Drag and drop file here") {
+                    node.nodeValue = "Arrastra y suelta tu archivo Excel aquí";
                 }
-            });
+            }
         }
 
+        // Ejecutar constantemente ante cualquier cambio en la interfaz
         const observer = new MutationObserver(() => {
-            traducirTextos();
+            forzarTraduccionUpload();
         });
         
         observer.observe(document.body, { childList: true, subtree: true });
-        window.addEventListener('load', traducirTextos);
+        
+        // Ejecución inmediata y respaldos por intervalos
+        window.addEventListener('load', forzarTraduccionUpload);
+        setTimeout(forzarTraduccionUpload, 200);
+        setTimeout(forzarTraduccionUpload, 800);
     </script>
     """,
     unsafe_allow_html=True,
