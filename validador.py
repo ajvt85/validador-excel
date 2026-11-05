@@ -10,27 +10,40 @@ st.set_page_config(
     layout='wide',
 )
 
-# Inyección de estilos CSS personalizados usando #ef4444
+# Inyección de estilos CSS personalizados
 st.markdown(
     """
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 2rem;
+        }
+        
+        /* Botón de cabecera a ancho completo, centrado, color #ef4444 e icono SVG */
         .header-btn {
-            display: inline-flex;
+            display: flex;
             align-items: center;
+            justify-content: center;
+            width: 100%;
             background-color: #ef4444;
             color: white;
-            padding: 12px 24px;
+            padding: 16px 24px;
             border-radius: 12px;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
             font-family: sans-serif;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            gap: 12px;
         }
-        .header-btn span {
-            margin-right: 12px;
-            font-size: 28px;
+        
+        .header-btn svg {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+            flex-shrink: 0;
         }
     </style>
     """,
@@ -216,10 +229,13 @@ def generar_excel_reparado(uploaded_file):
 
 
 # --- INTERFAZ GRÁFICA CON STREAMLIT ---
+# Encabezado con icono Dashboard en formato SVG nativo
 st.markdown(
     """
     <div class="header-btn">
-        <span class="material-symbols-outlined">dashboard</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+        </svg>
         Validador archivo CréditoYA
     </div>
     """,
@@ -258,7 +274,7 @@ if uploaded_file is not None:
 
   st.markdown('---')
 
-  # Desglose de Errores por Columna con icono lab_profile y color #ef4444
+  # Desglose de Errores por Columna
   st.markdown(
       '### <span class="material-symbols-outlined"'
       ' style="vertical-align: middle; font-size: 28px; color: #ef4444;">lab_profile</span>'
@@ -276,7 +292,7 @@ if uploaded_file is not None:
 
   st.markdown('---')
 
-  # Detalle Fila por Fila con icono search (lupa) y color #ef4444
+  # Detalle Fila por Fila
   st.markdown(
       '### <span class="material-symbols-outlined"'
       ' style="vertical-align: middle; font-size: 28px; color: #ef4444;">search</span>'
