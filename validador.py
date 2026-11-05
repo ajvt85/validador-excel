@@ -3,24 +3,25 @@ import re
 import openpyxl
 import streamlit as st
 
-# Configuración de la página web de Streamlit
+# Configuración de la página web de Streamlit con el nuevo título
 st.set_page_config(
-    page_title='Validador archivo CréditoYA',
+    page_title='CréditoYA - Validador de archivo',
     page_icon='📊',
     layout='wide',
 )
 
-# Inyección de estilos CSS personalizados
+# Inyección de estilos CSS optimizados (con márgenes y ancho ajustado)
 st.markdown(
     """
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
         .block-container {
-            padding-top: 1.5rem;
+            padding-top: 2rem;
             padding-bottom: 2rem;
+            max-width: 98%;
         }
         
-        /* Botón de cabecera a ancho completo, centrado, color #ef4444 e icono SVG */
+        /* Botón de cabecera con margen adecuado para que no se vea cortado */
         .header-btn {
             display: flex;
             align-items: center;
@@ -28,15 +29,17 @@ st.markdown(
             width: 100%;
             background-color: #ef4444;
             color: white;
-            padding: 16px 24px;
+            padding: 18px 24px;
             border-radius: 12px;
             font-size: 26px;
             font-weight: 700;
             font-family: sans-serif;
-            margin-bottom: 20px;
+            margin-top: 10px;
+            margin-bottom: 25px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
             gap: 12px;
+            box-sizing: border-box;
         }
         
         .header-btn svg {
@@ -229,14 +232,14 @@ def generar_excel_reparado(uploaded_file):
 
 
 # --- INTERFAZ GRÁFICA CON STREAMLIT ---
-# Encabezado con icono Dashboard en formato SVG nativo
+# Encabezado con icono SVG 'fact_check' y nuevo título
 st.markdown(
     """
     <div class="header-btn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
         </svg>
-        Validador archivo CréditoYA
+        CréditoYA - Validador de archivo
     </div>
     """,
     unsafe_allow_html=True,
