@@ -5,9 +5,36 @@ import streamlit as st
 
 # Configuración de la página web de Streamlit
 st.set_page_config(
-    page_title='Validador de Archivos Excel',
+    page_title='Validador archivo CréditoYA',
     page_icon='📊',
     layout='wide',
+)
+
+# Inyección de estilos CSS personalizados usando #ef4444
+st.markdown(
+    """
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        .header-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: #ef4444;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            font-family: sans-serif;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header-btn span {
+            margin-right: 12px;
+            font-size: 28px;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
 
@@ -20,7 +47,6 @@ def validar_excel(file):
   registros_con_errores = 0
   filas_con_error_nros = []
 
-  # Contadores de errores por columna
   errores_por_columna = {
       'Col. A (Documento)': 0,
       'Col. B (RIF)': 0,
@@ -33,7 +59,6 @@ def validar_excel(file):
 
   detalle_errores_por_fila = []
 
-  # Regex de validación
   patron_col_a = re.compile(r'^[VERNRvernr]\d{7,8}$')
   patron_col_b = re.compile(r'^[VERNRvernr]\d{7,9}$')
   patron_col_d = re.compile(r'^\d+\s*-\s*.+$')
@@ -41,14 +66,12 @@ def validar_excel(file):
   for num_fila, fila in enumerate(
       ws.iter_rows(min_row=1, max_row=ws.max_row), start=1
   ):
-    # Omitir filas completamente vacías
     if all(cell.value is None for cell in fila):
       continue
 
     total_leidos += 1
     errores_en_esta_fila = []
 
-    # Asegurar que existan al menos 7 columnas (A a G)
     while len(fila) < 7:
 
       class DummyCell:
@@ -57,9 +80,7 @@ def validar_excel(file):
 
       fila = list(fila) + [DummyCell()]
 
-    # ----------------------------------------------------
-    # COLUMNA A: Documento
-    # ----------------------------------------------------
+    # COLUMNA A
     val_a = str(fila[0].value).strip() if fila[0].value is not None else ''
     if not patron_col_a.match(val_a):
       errores_por_columna['Col. A (Documento)'] += 1
@@ -67,17 +88,13 @@ def validar_excel(file):
           f'Columna A (Documento inválido: "{val_a}")'
       )
 
-    # ----------------------------------------------------
-    # COLUMNA B: RIF
-    # ----------------------------------------------------
+    # COLUMNA B
     val_b = str(fila[1].value).strip() if fila[1].value is not None else ''
     if not patron_col_b.match(val_b):
       errores_por_columna['Col. B (RIF)'] += 1
       errores_en_esta_fila.append(f'Columna B (RIF inválido: "{val_b}")')
 
-    # ----------------------------------------------------
-    # COLUMNA C: Cuenta (20 dígitos, 0138, apóstrofe en fx)
-    # ----------------------------------------------------
+    # COLUMNA C
     celda_c = fila[2]
     val_c = str(celda_c.value).strip() if celda_c.value is not None else ''
     tiene_apo_c = getattr(celda_c, 'quotePrefix', False)
@@ -93,22 +110,18 @@ def validar_excel(file):
       if not tiene_apo_c:
         motivo = 'Falta apóstrofe en celda C'
       elif len(val_c) != 20:
-        motivo = f'Longitud incorrecta ({len(val_c)} dígitos en vez de 20)'
+        motivo = f'Longitud incorrecta ({len(val_c)} dígitos)'
       elif not val_c.startswith('0138'):
         motivo = 'No empieza con 0138'
       errores_en_esta_fila.append(f'Columna C ({motivo}: "{val_c}")')
 
-    # ----------------------------------------------------
-    # COLUMNA D: Agencia
-    # ----------------------------------------------------
+    # COLUMNA D
     val_d = str(fila[3].value).strip() if fila[3].value is not None else ''
     if not patron_col_d.match(val_d):
       errores_por_columna['Col. D (Agencia)'] += 1
       errores_en_esta_fila.append(f'Columna D (Agencia inválida: "{val_d}")')
 
-    # ----------------------------------------------------
-    # COLUMNA E: Monto (Punto decimal, apóstrofe en fx)
-    # ----------------------------------------------------
+    # COLUMNA E
     celda_e = fila[4]
     val_e_raw = celda_e.value
     tiene_apo_e = getattr(celda_e, 'quotePrefix', False)
@@ -127,14 +140,10 @@ def validar_excel(file):
 
     if not es_valido_monto or not tiene_apo_e:
       errores_por_columna['Col. E (Monto)'] += 1
-      motivo_e = (
-          'Falta apóstrofe o formato de monto inválido (use punto decimal)'
-      )
+      motivo_e = 'Falta apóstrofe o monto inválido (use punto decimal)'
       errores_en_esta_fila.append(f'Columna E ({motivo_e}: "{val_e_str}")')
 
-    # ----------------------------------------------------
-    # COLUMNA F: Canal (Debe ser 2072)
-    # ----------------------------------------------------
+    # COLUMNA F
     val_f = str(fila[5].value).strip() if fila[5].value is not None else ''
     if val_f != '2072':
       errores_por_columna['Col. F (Canal)'] += 1
@@ -142,9 +151,7 @@ def validar_excel(file):
           f'Columna F (Canal inválido, debe ser 2072: "{val_f}")'
       )
 
-    # ----------------------------------------------------
-    # COLUMNA G: Estado (Debe ser N)
-    # ----------------------------------------------------
+    # COLUMNA G
     val_g = str(fila[6].value).strip() if fila[6].value is not None else ''
     if val_g.upper() != 'N':
       errores_por_columna['Col. G (Estado)'] += 1
@@ -152,11 +159,12 @@ def validar_excel(file):
           f'Columna G (Estado inválido, debe ser N: "{val_g}")'
       )
 
-    # Evaluar si la fila tiene errores
     if errores_en_esta_fila:
       registros_con_errores += 1
       filas_con_error_nros.append(num_fila)
-      detalle_errores_por_fila.append({'fila': num_fila, 'errores': errores_en_esta_fila})
+      detalle_errores_por_fila.append(
+          {'fila': num_fila, 'errores': errores_en_esta_fila}
+      )
     else:
       registros_correctos += 1
 
@@ -167,54 +175,38 @@ def validar_excel(file):
       'filas_error': filas_con_error_nros,
       'por_columna': errores_por_columna,
       'detalle_filas': detalle_errores_por_fila,
-      'file_bytes': file,  # Conservamos el archivo original para procesarlo limpio
   }
 
 
 def generar_excel_reparado(uploaded_file):
-  # Recargamos el archivo original para asegurarnos de modificar el libro limpio
   wb = openpyxl.load_workbook(uploaded_file, data_only=False)
   ws = wb.active
 
   for row in ws.iter_rows(min_row=1, max_row=ws.max_row):
-    # Omitir filas vacías
     if all(cell.value is None for cell in row):
       continue
-
-    # Asegurar al menos 7 celdas
     while len(row) < 7:
+
       class DummyCell:
         value = None
+
       row = list(row) + [DummyCell()]
 
-    # Columna A y B: Limpiar espacios
     if row[0].value is not None:
       row[0].value = str(row[0].value).strip().upper()
     if row[1].value is not None:
       row[1].value = str(row[1].value).strip().upper()
-
-    # Columna C: Asegurar 20 dígitos y apóstrofe inicial en la barra fx
     if row[2].value is not None:
-      val_c = str(row[2].value).strip()
-      # Si por algún motivo tiene decimales o formato extraño, limpiamos
-      val_c = re.sub(r'\D', '', val_c)  # Solo números
+      val_c = re.sub(r'\D', '', str(row[2].value).strip())
       row[2].value = val_c
-      row[2].quotePrefix = True  # Fuerza el apóstrofe en la barra fx
-
-    # Columna D: Limpiar espacios de agencia
+      row[2].quotePrefix = True
     if row[3].value is not None:
       row[3].value = str(row[3].value).strip()
-
-    # Columna E: Monto (cambiar comas por puntos y forzar apóstrofe en fx)
     if row[4].value is not None:
       val_e = str(row[4].value).strip().replace(',', '.')
       row[4].value = val_e
-      row[4].quotePrefix = True  # Fuerza el apóstrofe en la barra fx
-
-    # Columna F: Forzar constante 2072
+      row[4].quotePrefix = True
     row[5].value = '2072'
-
-    # Columna G: Forzar constante N
     row[6].value = 'N'
 
   output = io.BytesIO()
@@ -223,8 +215,17 @@ def generar_excel_reparado(uploaded_file):
   return output
 
 
-# --- DISEÑO DE LA INTERFAZ CON STREAMLIT ---
-st.title('📊 Validador de Resultados y Celdas')
+# --- INTERFAZ GRÁFICA CON STREAMLIT ---
+st.markdown(
+    """
+    <div class="header-btn">
+        <span class="material-symbols-outlined">dashboard</span>
+        Validador archivo CréditoYA
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.markdown(
     'Sube tu archivo Excel para validar automáticamente todas las reglas de'
     ' estructura, formato y apóstrofe.'
@@ -256,7 +257,14 @@ if uploaded_file is not None:
     st.metric(label='FILAS CON ERRORES (NROS)', value=filas_str)
 
   st.markdown('---')
-  st.subheader('📋 Desglose de Errores por Columna:')
+
+  # Desglose de Errores por Columna con icono lab_profile y color #ef4444
+  st.markdown(
+      '### <span class="material-symbols-outlined"'
+      ' style="vertical-align: middle; font-size: 28px; color: #ef4444;">lab_profile</span>'
+      ' Desglose de Errores por Columna:',
+      unsafe_allow_html=True,
+  )
 
   cols_inf = st.columns(7)
   keys_cols = list(resultado['por_columna'].keys())
@@ -268,20 +276,34 @@ if uploaded_file is not None:
 
   st.markdown('---')
 
-  # Listado detallado fila por fila
-  st.subheader('🔍 Detalle Fila por Fila de los Errores Encontrados')
+  # Detalle Fila por Fila con icono search (lupa) y color #ef4444
+  st.markdown(
+      '### <span class="material-symbols-outlined"'
+      ' style="vertical-align: middle; font-size: 28px; color: #ef4444;">search</span>'
+      ' Detalle Fila por Fila de los Errores Encontrados',
+      unsafe_allow_html=True,
+  )
 
   if resultado['detalle_filas']:
     for item in resultado['detalle_filas']:
-      with st.expander(f"❌ Fila #{item['fila']} (Errores detectados: {len(item['errores'])})"):
+      with st.expander(
+          f"❌ Fila #{item['fila']} (Errores detectados: {len(item['errores'])})"
+      ):
         for err in item['errores']:
           st.markdown(f'- {err}')
   else:
-    st.success('¡Excelente! No se encontraron errores en ninguna fila del archivo.')
+    st.markdown(
+        """
+        <div style="display: flex; align-items: center; background-color: #d1e7dd; color: #0f5132; padding: 12px 16px; border-radius: 8px; font-weight: 600; gap: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 24px;">verified</span>
+            ¡Excelente! No se encontraron errores en ninguna fila del archivo.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
   st.markdown('---')
 
-  # Botón de descarga interactivo y funcional
   excel_limpio = generar_excel_reparado(uploaded_file)
   st.download_button(
       label='✨ Reparar y Descargar Excel Limpio',
