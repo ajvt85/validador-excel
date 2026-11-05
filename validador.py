@@ -10,7 +10,7 @@ st.set_page_config(
     layout='wide',
 )
 
-# Inyección de estilos CSS y traducción automática del botón de carga a "Subir Aquí"
+# Inyección de estilos CSS y script para traducir el botón a "Subir Aquí"
 st.markdown(
     """
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -21,7 +21,7 @@ st.markdown(
             max-width: 98%;
         }
         
-        /* Botón de cabecera completo y centrado */
+        /* Botón de cabecera completo, centrado y con color #ef4444 */
         .header-btn {
             display: flex;
             align-items: center;
@@ -51,21 +51,27 @@ st.markdown(
     </style>
 
     <script>
-        // Script para traducir dinámicamente los textos del file uploader a español
-        const observer = new MutationObserver((mutations) => {
-            document.querySelectorAll('span, div, p').forEach(el => {
-                if (el.innerText.includes("Drag and drop file here")) {
-                    el.innerText = el.innerText.replace("Drag and drop file here", "Arrastra y suelta tu archivo Excel aquí");
-                }
-                if (el.innerText.includes("Limit 200MB per file")) {
-                    el.innerText = el.innerText.replace("Limit 200MB per file", "Límite de 200MB por archivo");
-                }
-                if (el.innerText.includes("Browse files")) {
-                    el.innerText = el.innerText.replace("Browse files", "Subir Aquí");
+        // Script para traducir "Upload" y otros textos de carga a español en tiempo real
+        function traducirTextos() {
+            document.querySelectorAll('button, span, div, p').forEach(el => {
+                if (el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.TEXT_NODE) {
+                    let texto = el.childNodes[0].nodeValue.trim();
+                    if (texto === "Upload" || texto === "Browse files") {
+                        el.childNodes[0].nodeValue = "Subir Aquí";
+                    }
+                    if (texto === "Drag and drop file here") {
+                        el.childNodes[0].nodeValue = "Arrastra y suelta tu archivo Excel aquí";
+                    }
                 }
             });
+        }
+
+        const observer = new MutationObserver((mutations) => {
+            traducirTextos();
         });
+        
         observer.observe(document.body, { childList: true, subtree: true });
+        window.addEventListener('load', traducirTextos);
     </script>
     """,
     unsafe_allow_html=True,
